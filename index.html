@@ -10,7 +10,15 @@
             --light-bg: #f8f9fa;
             --border-color: #ddd;
         }
-        * { box-sizing: border-box; font-family: Arial, sans-serif; }
+        
+        * { 
+            box-sizing: border-box; 
+            font-family: Arial, sans-serif; 
+            /* Força o navegador a imprimir os fundos coloridos */
+            -webkit-print-color-adjust: exact !important;
+            print-color-adjust: exact !important;
+        }
+        
         body { margin: 0; padding: 0; background-color: #e9ecef; display: flex; height: 100vh; }
         
         /* Layout Principal */
@@ -39,6 +47,8 @@
             padding: 15mm;
             box-shadow: 0 0 10px rgba(0,0,0,0.5);
             margin: auto;
+            display: flex;
+            flex-direction: column;
         }
 
         /* Estilos Internos do Documento */
@@ -53,35 +63,48 @@
         table.doc-table th { color: var(--primary-blue); text-align: center; background: white; border-top: 2px solid var(--primary-blue); }
         table.doc-table tbody tr:nth-child(even) { background-color: #fcfcfc; }
 
-        .doc-footer-content { margin-top: 20px; }
-        .prazo-text { color: var(--primary-blue); font-weight: bold; text-transform: uppercase; font-size: 14px; }
-        .divider { height: 2px; background: var(--primary-blue); width: 150px; margin: 15px 0; }
+        /* Estilos do Rodapé Fixo no Fundo */
+        .doc-footer-content { margin-top: 20px; width: 100%; }
+        .prazo-text { color: var(--primary-blue); font-weight: bold; text-transform: uppercase; font-size: 16px; }
+        .divider { height: 3px; background: var(--primary-blue); width: 80px; margin: 15px 0; }
         .footer-bottom { display: flex; justify-content: space-between; align-items: center; }
         .contact { font-size: 16px; display: flex; align-items: center; gap: 8px; font-weight: bold; }
         .total-badge { background: var(--primary-blue); color: white; padding: 10px 20px; border-radius: 20px; font-size: 18px; font-weight: bold; }
 
-        /* Tabela Mestra para Repetição em Impressão */
-        table.print-wrapper { width: 100%; }
+        /* Estrutura de Tabela para empurrar o rodapé para baixo */
+        table.print-wrapper { width: 100%; min-height: 267mm; height: 100%; border-collapse: collapse; }
         thead.print-header { display: table-header-group; }
         tfoot.print-footer { display: table-footer-group; }
         tbody.print-body { display: table-row-group; }
+        /* O segredo para o rodapé ficar embaixo: a linha do meio expande ao máximo */
+        tbody.print-body > tr > td { height: 100%; vertical-align: top; }
 
-        /* Responsividade para Celular e Impressão */
+        /* Responsividade e Configuração de Impressão */
         @media (max-width: 768px) {
             .app-container { flex-direction: column; overflow: auto; }
             .form-panel { width: 100%; box-shadow: none; }
-            .preview-panel { display: none; /* Esconde no celular, usa o preview do sistema */ }
+            .preview-panel { display: none; }
+        }
+
+        /* Configura a folha real da impressora */
+        @page {
+            size: A4 portrait;
+            margin: 0; /* REMOVE OS TEXTOS MINÚSCULOS DO NAVEGADOR */
         }
 
         @media print {
-            body * { visibility: hidden; }
+            body { margin: 0; padding: 0; background: white; }
+            .form-panel { display: none; }
             .preview-panel { display: block; padding: 0; background: white; }
-            .a4-sheet, .a4-sheet * { visibility: visible; }
+            
             .a4-sheet { 
-                position: absolute; left: 0; top: 0; width: 100%; min-height: auto; 
-                margin: 0; padding: 0; box-shadow: none; 
+                position: relative; 
+                width: 100%; 
+                margin: 0; 
+                padding: 15mm; /* Margem de segurança do documento impresso */
+                box-shadow: none; 
+                min-height: 297mm;
             }
-            @page { margin: 15mm; size: A4 portrait; }
         }
     </style>
 </head>
@@ -109,9 +132,9 @@
         </div>
 
         <div class="dynamic-list">
-            <label>Serviços</label>
+            <label>Serviços / Trabalho Não Incluso</label>
             <div id="servicos-container"></div>
-            <button class="btn-small" onclick="addItem('servicos')">+ Adicionar Serviço</button>
+            <button class="btn-small" onclick="addItem('servicos')">+ Adicionar Item</button>
         </div>
 
         <div class="dynamic-list">
@@ -132,7 +155,7 @@
 
         <div class="form-group">
             <label>Prazo de Conclusão</label>
-            <input type="text" id="f_prazo" placeholder="Ex: 60 DIAS" oninput="updatePreview()">
+            <input type="text" id="f_prazo" placeholder="Ex: 60 DIAS" value="60 DIAS" oninput="updatePreview()">
         </div>
 
         <div class="form-group">
@@ -179,7 +202,8 @@
                                 <div class="divider"></div>
                                 <div class="footer-bottom">
                                     <div class="contact">
-                                        📞 <span id="p_telefone">(41) 9930-3754</span>
+                                        <svg width="20" height="20" viewBox="0 0 24 24" fill="var(--primary-blue)"><path d="M20.01 15.38c-1.23 0-2.42-.2-3.53-.56-.35-.12-.74-.03-1.01.24l-1.57 1.97c-2.83-1.35-5.48-3.9-6.89-6.83l1.95-1.66c.27-.28.35-.67.24-1.02-.37-1.11-.56-2.3-.56-3.53 0-.54-.45-.99-.99-.99H4.19C3.65 3 3 3.24 3 3.99 3 13.28 10.73 21 20.01 21c.71 0 .99-.63.99-1.18v-3.45c0-.54-.45-.99-.99-.99z"/></svg>
+                                        <span id="p_telefone">(41) 9930-3754</span>
                                     </div>
                                     <div class="total-badge" id="p_total">TOTAL: R$ 0,00</div>
                                 </div>
@@ -194,18 +218,17 @@
 
 <script>
     let dados = {
-        servicos: [{ desc: '', valor: '' }],
+        servicos: [
+            { desc: 'Locação de máquina', valor: '2000' },
+            { desc: 'Locação de Andaimes', valor: '3000' }
+        ],
         materiais: []
     };
 
-    // Inicialização
     window.onload = () => {
-        // Carrega o número auto-incremental
         let numId = localStorage.getItem('orcamento_id');
-        if(!numId) numId = 2502; // Começa do número do seu exemplo
+        if(!numId) numId = 2502;
         document.getElementById('f_numero').value = numId;
-        
-        // Data de hoje
         document.getElementById('f_data').valueAsDate = new Date();
         
         renderInputs('servicos');
@@ -213,21 +236,18 @@
         updatePreview();
     };
 
-    // Adiciona novo item na lista
     function addItem(tipo) {
         dados[tipo].push({ desc: '', valor: '' });
         renderInputs(tipo);
         updatePreview();
     }
 
-    // Remove item da lista
     function removeItem(tipo, index) {
         dados[tipo].splice(index, 1);
         renderInputs(tipo);
         updatePreview();
     }
 
-    // Renderiza os campos de input no painel esquerdo
     function renderInputs(tipo) {
         const container = document.getElementById(`${tipo}-container`);
         container.innerHTML = '';
@@ -242,20 +262,16 @@
         });
     }
 
-    // Atualiza os dados quando digita
     function updateData(tipo, index, campo, valor) {
         dados[tipo][index][campo] = valor;
         updatePreview();
     }
 
-    // Formata Moeda Brasileira
     function formatarMoeda(valor) {
         return Number(valor).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
     }
 
-    // Função Principal que atualiza o PDF visualmente
     function updatePreview() {
-        // 1. Textos Simples
         document.getElementById('p_responsavel').innerText = document.getElementById('f_responsavel').value;
         
         let num = document.getElementById('f_numero').value;
@@ -279,11 +295,9 @@
 
         document.getElementById('p_telefone').innerText = document.getElementById('f_telefone').value;
 
-        // 2. Tabelas Dinâmicas (Serviços e Materiais)
         renderizarTabelaPreview('servicos', 'SERVIÇO');
         renderizarTabelaPreview('materiais', 'MATERIAIS');
 
-        // 3. Observações
         let obs = document.getElementById('f_obs').value;
         let obsSection = document.getElementById('p_obs_section');
         if(obs.trim() !== '') {
@@ -295,7 +309,6 @@
             obsSection.innerHTML = '';
         }
 
-        // 4. Cálculos do Total
         let totalGeral = 0;
         dados.servicos.forEach(i => totalGeral += Number(i.valor) || 0);
         dados.materiais.forEach(i => totalGeral += Number(i.valor) || 0);
@@ -304,19 +317,16 @@
         document.getElementById('p_total').innerText = `TOTAL: ${formatarMoeda(totalGeral)}`;
     }
 
-    // Helper para criar as tabelas no preview
     function renderizarTabelaPreview(tipo, titulo) {
         let secao = document.getElementById(`p_${tipo}_section`);
-        let itens = dados[tipo].filter(i => i.desc.trim() !== ''); // Só pega itens com texto
+        let itens = dados[tipo].filter(i => i.desc.trim() !== ''); 
         
         if(itens.length === 0) {
             secao.innerHTML = '';
             return;
         }
 
-        // Verifica se algum item tem valor preenchido para mostrar a coluna "VALOR"
         let temValor = itens.some(i => i.valor !== '' && Number(i.valor) > 0);
-
         let html = `<div class="section-title">${titulo}</div><table class="doc-table">`;
         
         if(temValor) {
@@ -336,17 +346,12 @@
         secao.innerHTML = html;
     }
 
-    // Ação de Imprimir/Salvar
     function imprimirPdf() {
-        // Salva o número atual como próximo para a próxima vez
         let atual = document.getElementById('f_numero').value;
         localStorage.setItem('orcamento_id', parseInt(atual) + 1);
-        
-        // Aciona o print nativo do navegador
         window.print();
     }
 
-    // Ação de Novo Orçamento
     function novoOrcamento() {
         if(confirm("Limpar os dados e gerar um novo número?")) {
             let atual = localStorage.getItem('orcamento_id') || 2502;
@@ -356,7 +361,6 @@
             dados.materiais = [];
             document.getElementById('f_adicional').value = '';
             document.getElementById('f_obs').value = '';
-            document.getElementById('f_prazo').value = '';
             
             renderInputs('servicos');
             renderInputs('materiais');

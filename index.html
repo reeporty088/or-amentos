@@ -18,8 +18,9 @@
             print-color-adjust: exact !important;
         }
         
-        /* Layout travado para a tela do PC (Estilo App) */
         body { margin: 0; padding: 0; background-color: #e9ecef; display: flex; height: 100vh; overflow: hidden; }
+        
+        /* Layout Principal do App */
         .app-container { display: flex; width: 100%; height: 100%; overflow: hidden; }
         .form-panel { width: 400px; background: white; padding: 20px; overflow-y: auto; box-shadow: 2px 0 5px rgba(0,0,0,0.1); z-index: 10; }
         .preview-panel { flex: 1; padding: 20px; overflow-y: auto; display: flex; justify-content: center; background: #525659; }
@@ -37,7 +38,7 @@
         .btn-small { width: auto; padding: 5px 10px; font-size: 12px; margin-bottom: 0; background: #28a745; }
         .btn-remove { background: #dc3545; }
 
-        /* Estilos da Folha A4 (Preview Web) */
+        /* ESTILOS DA FOLHA A4 (Visualização na Tela) */
         .a4-sheet {
             background: white;
             width: 210mm;
@@ -47,7 +48,19 @@
             margin: auto;
             display: flex;
             flex-direction: column;
+            position: relative;
         }
+
+        /* Estrutura da Tabela de Conteúdo */
+        .main-content-table {
+            flex: 1; /* Empurra o rodapé para o fim na tela */
+            width: 100%;
+            border-collapse: collapse;
+            table-layout: fixed;
+        }
+
+        /* Oculta os espaçadores na visualização do PC/Celular */
+        .print-spacer { display: none; }
 
         /* Estilos Internos do Documento */
         .doc-header h3 { color: var(--primary-blue); margin: 0 0 5px 0; text-transform: uppercase; font-size: 16px; }
@@ -56,26 +69,13 @@
         
         .section-title { text-align: center; color: var(--primary-blue); text-transform: uppercase; font-size: 14px; margin: 20px 0 10px 0; font-weight: bold; }
         
-        table.doc-table { 
-            width: 100%; 
-            border-collapse: collapse; 
-            margin-bottom: 15px; 
-            table-layout: fixed;
-        }
-        
+        table.doc-table { width: 100%; border-collapse: collapse; margin-bottom: 15px; table-layout: fixed; }
         table.doc-table th, table.doc-table td { 
-            border: 1px solid var(--border-color); 
-            padding: 10px; 
-            text-align: left; 
-            font-size: 14px; 
-            word-wrap: break-word; 
-            overflow-wrap: break-word;
-            word-break: break-word;
+            border: 1px solid var(--border-color); padding: 10px; text-align: left; font-size: 14px; 
+            word-wrap: break-word; overflow-wrap: break-word; word-break: break-word;
         }
-        
         table.doc-table th { color: var(--primary-blue); text-align: center; background: white; border-top: 2px solid var(--primary-blue); }
         table.doc-table tbody tr:nth-child(even) { background-color: #fcfcfc; }
-        
         table.doc-table th:last-child, table.doc-table td:last-child { width: 150px; }
 
         /* Estilos do Rodapé */
@@ -86,13 +86,6 @@
         .contact { font-size: 16px; display: flex; align-items: center; gap: 8px; font-weight: bold; }
         .total-badge { background: var(--primary-blue); color: white; padding: 10px 20px; border-radius: 20px; font-size: 18px; font-weight: bold; }
 
-        /* Estrutura de Tabela Mestra (Controla o Cabeçalho e Rodapé nas páginas) */
-        table.print-wrapper { width: 100%; border-collapse: collapse; height: 100%; }
-        thead.print-header { display: table-header-group; }
-        tfoot.print-footer { display: table-footer-group; }
-        tbody.print-body { display: table-row-group; }
-
-        /* Responsividade Celular */
         @media (max-width: 768px) {
             body { height: auto; overflow: visible; }
             .app-container { flex-direction: column; overflow: visible; height: auto; }
@@ -100,25 +93,21 @@
             .preview-panel { display: none; }
         }
 
-        /* CONFIGURAÇÃO EXCLUSIVA PARA A IMPRESSORA (Onde a mágica da paginação acontece) */
+        /* =========================================================
+           CONFIGURAÇÃO EXCLUSIVA PARA A IMPRESSORA (A MÁGICA ACONTECE AQUI)
+           ========================================================= */
         @page {
             size: A4 portrait;
-            margin: 0; /* Tira textos pequenos do navegador */
+            margin: 15mm; /* Margem física gerida pela própria impressora */
         }
 
         @media print {
-            /* DESTRAVA TUDO QUE LIMITA A ALTURA DA PÁGINA */
             html, body { 
                 height: auto !important; 
                 overflow: visible !important; 
-                display: block !important; 
-                background: white; 
+                margin: 0; padding: 0; background: white; 
             }
-            .app-container { 
-                height: auto !important; 
-                overflow: visible !important; 
-                display: block !important; 
-            }
+            .app-container { display: block; height: auto; overflow: visible; }
             .form-panel { display: none !important; }
             
             .preview-panel { 
@@ -126,7 +115,7 @@
                 padding: 0 !important; 
                 height: auto !important; 
                 overflow: visible !important; 
-                background: white; 
+                background: transparent; 
             }
             
             .a4-sheet { 
@@ -134,16 +123,37 @@
                 height: auto !important;
                 min-height: auto !important;
                 margin: 0 !important; 
-                padding: 15mm !important; /* Retorna as margens físicas do papel */
+                padding: 0 !important; /* Retira o padding para usar a margem do @page */
                 box-shadow: none !important; 
                 display: block !important;
             }
 
-            /* Impede que uma linha da tabela de materiais seja cortada no meio entre a página 1 e 2 */
-            table.doc-table tr { 
-                page-break-inside: avoid; 
-                break-inside: avoid; 
+            /* FIXA O CABEÇALHO NO TOPO DE TODAS AS FOLHAS */
+            #header-content {
+                position: fixed;
+                top: 0;
+                left: 0;
+                width: 100%;
+                background: white;
             }
+
+            /* FIXA O RODAPÉ NA BASE DE TODAS AS FOLHAS */
+            #footer-content {
+                position: fixed;
+                bottom: 0;
+                left: 0;
+                width: 100%;
+                background: white;
+            }
+
+            .main-content-table { display: table; }
+            
+            /* Ativa os espaçadores invisíveis para não sobrepor o texto no cabeçalho/rodapé fixo */
+            .print-spacer { display: table-header-group; }
+            tfoot.print-spacer { display: table-footer-group; }
+            
+            /* Evita que uma linha com texto seja rasgada ao meio entre duas páginas */
+            table.doc-table tr { break-inside: avoid; page-break-inside: avoid; }
         }
     </style>
 </head>
@@ -208,22 +218,19 @@
 
     <div class="preview-panel">
         <div class="a4-sheet" id="print-area">
-            <table class="print-wrapper">
-                <thead class="print-header">
-                    <tr>
-                        <td>
-                            <div class="doc-header">
-                                <h3 id="p_responsavel">RUI FERREIRA</h3>
-                                <h1 id="p_titulo">ORÇAMENTO #0000 - OBRA</h1>
-                                <p id="p_data">Data: 00/00/0000</p>
-                            </div>
-                        </td>
-                    </tr>
-                </thead>
+            
+            <div class="doc-header" id="header-content">
+                <h3 id="p_responsavel">RUI FERREIRA</h3>
+                <h1 id="p_titulo">ORÇAMENTO #0000 - OBRA</h1>
+                <p id="p_data">Data: 00/00/0000</p>
+            </div>
 
+            <table class="main-content-table">
+                <thead class="print-spacer"><tr><td><div style="height: 100px;"></div></td></tr></thead>
+                
                 <tbody class="print-body">
                     <tr>
-                        <td>
+                        <td style="vertical-align: top; padding: 0;">
                             <div id="p_servicos_section"></div>
                             <div id="p_materiais_section"></div>
                             <div id="p_obs_section"></div>
@@ -231,26 +238,23 @@
                     </tr>
                 </tbody>
 
-                <tfoot class="print-footer">
-                    <tr>
-                        <td>
-                            <div class="doc-footer-content">
-                                <div id="p_prazo_container">
-                                    <div class="prazo-text" id="p_prazo">PRAZO DE CONCLUSÃO: 60 DIAS</div>
-                                </div>
-                                <div class="divider"></div>
-                                <div class="footer-bottom">
-                                    <div class="contact">
-                                        <svg width="20" height="20" viewBox="0 0 24 24" fill="var(--primary-blue)"><path d="M20.01 15.38c-1.23 0-2.42-.2-3.53-.56-.35-.12-.74-.03-1.01.24l-1.57 1.97c-2.83-1.35-5.48-3.9-6.89-6.83l1.95-1.66c.27-.28.35-.67.24-1.02-.37-1.11-.56-2.3-.56-3.53 0-.54-.45-.99-.99-.99H4.19C3.65 3 3 3.24 3 3.99 3 13.28 10.73 21 20.01 21c.71 0 .99-.63.99-1.18v-3.45c0-.54-.45-.99-.99-.99z"/></svg>
-                                        <span id="p_telefone">(41) 9930-3754</span>
-                                    </div>
-                                    <div class="total-badge" id="p_total">TOTAL: R$ 0,00</div>
-                                </div>
-                            </div>
-                        </td>
-                    </tr>
-                </tfoot>
+                <tfoot class="print-spacer"><tr><td><div style="height: 120px;"></div></td></tr></tfoot>
             </table>
+
+            <div class="doc-footer-content" id="footer-content">
+                <div id="p_prazo_container">
+                    <div class="prazo-text" id="p_prazo">PRAZO DE CONCLUSÃO: 60 DIAS</div>
+                </div>
+                <div class="divider"></div>
+                <div class="footer-bottom">
+                    <div class="contact">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="var(--primary-blue)"><path d="M20.01 15.38c-1.23 0-2.42-.2-3.53-.56-.35-.12-.74-.03-1.01.24l-1.57 1.97c-2.83-1.35-5.48-3.9-6.89-6.83l1.95-1.66c.27-.28.35-.67.24-1.02-.37-1.11-.56-2.3-.56-3.53 0-.54-.45-.99-.99-.99H4.19C3.65 3 3 3.24 3 3.99 3 13.28 10.73 21 20.01 21c.71 0 .99-.63.99-1.18v-3.45c0-.54-.45-.99-.99-.99z"/></svg>
+                        <span id="p_telefone">(41) 9930-3754</span>
+                    </div>
+                    <div class="total-badge" id="p_total">TOTAL: R$ 0,00</div>
+                </div>
+            </div>
+
         </div>
     </div>
 </div>
